@@ -1,0 +1,58 @@
+import logo from "./logo.svg";
+import React, { Suspense, lazy, useEffect, useState } from "react";
+import "./App.css";
+import { BrowserRouter, Route } from "react-router-dom";
+import { RecoilRoot } from "recoil";
+
+const TopNavLazy = React.lazy(
+  () => import("./components/TopNavMenu/TopNavMenu.lazy")
+);
+
+const AllBlogPosts = React.lazy(
+  () => import("./components/BlogPosts/BlogPosts.lazy")
+);
+
+const SingleBlogPost = React.lazy(
+  () => import("./components/BlogPost/BlogPost")
+);
+
+const AdminMenu = React.lazy(
+  () => import("./components/AdminMenu/AdminMenu.lazy")
+);
+
+function App() {
+  return (
+    <BrowserRouter>
+    <RecoilRoot>
+    <div className="App">
+      <Suspense fallback={<div>Loading...</div>}>
+        <header>
+          <TopNavLazy></TopNavLazy>
+          <AdminMenu></AdminMenu>
+        </header>
+        <div id="container">
+       
+          <main>
+            
+            <article>
+              <h2>Heading</h2>
+              <p>Text</p>
+            </article>
+
+            
+      
+      <Route component={AllBlogPosts} path="/" exact />
+      <Route component={SingleBlogPost} path="/blog/:slug" />
+      <Route component={SingleBlogPost} path="/sample" />
+  
+
+          </main>
+        </div>
+      </Suspense>
+    </div>
+    </RecoilRoot>
+    </BrowserRouter>
+  );
+}
+
+export default App;
