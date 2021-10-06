@@ -12,21 +12,14 @@ const AdminMenu = () => {
 
   const exampleMenu = (
     <Menu>
-        <MenuItem icon="graph" onClick={handleOnClick} text="New Blog Post" />
-        <MenuItem icon="map" text="Map" />
-        <MenuItem icon="th" text="Table" shouldDismissPopover={false} />
-        <MenuItem icon="zoom-to-fit" text="Nucleus" disabled={true} />
-        <MenuDivider />
-        <MenuItem icon="cog" text="Settings...">
-            <MenuItem icon="add" text="Add new application" disabled={true} />
-            <MenuItem icon="remove" text="Remove application" />
-        </MenuItem>
+        <MenuItem icon="add" onClick={handleOnClick} text="New Blog Post" />
+       
     </Menu>
 );
 return (
    
         <Popover2 content={exampleMenu} placement="right-end">
-            <Button icon="share" text="Blog Admin..." />
+            <Button icon="edit" text="Blog Admin..." />
         </Popover2>
 
 );

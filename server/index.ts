@@ -16,6 +16,7 @@ interface IBlogPost extends Document {
   content: string;
   author: string;
   date: Date;
+  status: Number;
 }
 
 const BlogPostSchema: Schema = new Schema({
@@ -25,6 +26,7 @@ const BlogPostSchema: Schema = new Schema({
   content: { type: String, required: true },
   author: { type: String, required: true },
   date: { type: Date, required: true },
+  status: { type: Number, required: true },
 });
 
 const BlogPostModel: Model<IBlogPost> = model("BlogPost", BlogPostSchema);
@@ -47,6 +49,7 @@ const schema = gql`
     content: String
     date: String
     author: String
+    status: Int
   }
 
   input BlogPostInput {
@@ -62,6 +65,7 @@ const schema = gql`
     description: String
     content: String
     author: String
+    status: Int
   }
 
   input MessageInput {
@@ -100,6 +104,7 @@ interface iBlogPost {
   content: string;
   date: Date;
   author: string;
+  status: Number;
 }
 
 const resolvers: IResolvers = {
@@ -229,7 +234,7 @@ const getBlogPosts = async (page: number): Promise<iBlogPost[]> => {
     {}
   );
 
-  const newBlogPosts: any[] = await BlogPostModel.find({}).sort({date: 'descending'}).exec();
+  const newBlogPosts: any[] = await BlogPostModel.find({status: 0}).sort({date: 'descending'}).exec();
 
 
   

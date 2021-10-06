@@ -34,10 +34,7 @@ function App() {
        
           <main>
             
-            <article>
-              <h2>Heading</h2>
-              <p>Text</p>
-            </article>
+            
 
             
       

@@ -5,10 +5,10 @@ import styles from './TopNavMenu.module.css';
 const TopNavMenu = () => (
   <Navbar>
   <Navbar.Group>
-      <Navbar.Heading>Blueprint</Navbar.Heading>
+      <Navbar.Heading>AC Adapter Association | Collectors Chat</Navbar.Heading>
       <Navbar.Divider />
       <AnchorButton className="bp3-minimal" icon="home" text="Home" href="/" />
-      <Button className="bp3-minimal" icon="document" text="Files" />
+      
   </Navbar.Group>
 </Navbar>
 );

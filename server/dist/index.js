@@ -75,6 +75,7 @@ var BlogPostSchema = new mongoose_1.Schema({
     content: { type: String, required: true },
     author: { type: String, required: true },
     date: { type: Date, required: true },
+    status: { type: Number, required: true },
 });
 var BlogPostModel = (0, mongoose_1.model)("BlogPost", BlogPostSchema);
 var server = (0, fastify_1.default)();
@@ -84,7 +85,7 @@ server.register(require("fastify-cors"), {
     methods: "GET",
     credentials: true,
 });
-var schema = (0, mercurius_codegen_1.gql)(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n  type BlogPost {\n    id: String\n    title: String\n    description: String\n    content: String\n    date: String\n    author: String\n  }\n\n  input BlogPostInput {\n    title: String\n    description: String\n    content: String\n    author: String\n  }\n\n  input BlogPostUpdateInput {\n    id: String\n    title: String\n    description: String\n    content: String\n    author: String\n  }\n\n  input MessageInput {\n    content: String\n    author: String\n  }\n\n  type Message {\n    id: ID!\n    content: String\n    author: String\n  }\n\n  type Mutation {\n    createMessage(input: MessageInput): Message\n    addBlogPost(input: BlogPostInput): BlogPost\n    updateBlogPost(input: BlogPostUpdateInput): BlogPost\n  }\n\n  type Query {\n    posts: [BlogPost!]!\n    post(id: String!): BlogPost!\n    hello(name: String!): String!\n  }\n"], ["\n  type BlogPost {\n    id: String\n    title: String\n    description: String\n    content: String\n    date: String\n    author: String\n  }\n\n  input BlogPostInput {\n    title: String\n    description: String\n    content: String\n    author: String\n  }\n\n  input BlogPostUpdateInput {\n    id: String\n    title: String\n    description: String\n    content: String\n    author: String\n  }\n\n  input MessageInput {\n    content: String\n    author: String\n  }\n\n  type Message {\n    id: ID!\n    content: String\n    author: String\n  }\n\n  type Mutation {\n    createMessage(input: MessageInput): Message\n    addBlogPost(input: BlogPostInput): BlogPost\n    updateBlogPost(input: BlogPostUpdateInput): BlogPost\n  }\n\n  type Query {\n    posts: [BlogPost!]!\n    post(id: String!): BlogPost!\n    hello(name: String!): String!\n  }\n"])));
+var schema = (0, mercurius_codegen_1.gql)(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n  type BlogPost {\n    id: String\n    title: String\n    description: String\n    content: String\n    date: String\n    author: String\n    status: Int\n  }\n\n  input BlogPostInput {\n    title: String\n    description: String\n    content: String\n    author: String\n  }\n\n  input BlogPostUpdateInput {\n    id: String\n    title: String\n    description: String\n    content: String\n    author: String\n    status: Int\n  }\n\n  input MessageInput {\n    content: String\n    author: String\n  }\n\n  type Message {\n    id: ID!\n    content: String\n    author: String\n  }\n\n  type Mutation {\n    createMessage(input: MessageInput): Message\n    addBlogPost(input: BlogPostInput): BlogPost\n    updateBlogPost(input: BlogPostUpdateInput): BlogPost\n  }\n\n  type Query {\n    posts: [BlogPost!]!\n    post(id: String!): BlogPost!\n    hello(name: String!): String!\n  }\n"], ["\n  type BlogPost {\n    id: String\n    title: String\n    description: String\n    content: String\n    date: String\n    author: String\n    status: Int\n  }\n\n  input BlogPostInput {\n    title: String\n    description: String\n    content: String\n    author: String\n  }\n\n  input BlogPostUpdateInput {\n    id: String\n    title: String\n    description: String\n    content: String\n    author: String\n    status: Int\n  }\n\n  input MessageInput {\n    content: String\n    author: String\n  }\n\n  type Message {\n    id: ID!\n    content: String\n    author: String\n  }\n\n  type Mutation {\n    createMessage(input: MessageInput): Message\n    addBlogPost(input: BlogPostInput): BlogPost\n    updateBlogPost(input: BlogPostUpdateInput): BlogPost\n  }\n\n  type Query {\n    posts: [BlogPost!]!\n    post(id: String!): BlogPost!\n    hello(name: String!): String!\n  }\n"])));
 var resolvers = {
     Query: {
         hello: function (root, _a, ctx, info) {
@@ -245,7 +246,7 @@ var getBlogPosts = function (page) { return __awaiter(void 0, void 0, void 0, fu
                 return [4 /*yield*/, (0, mongoose_1.connect)(mongoDBconnection, {})];
             case 1:
                 _a.sent();
-                return [4 /*yield*/, BlogPostModel.find({}).sort({ date: 'descending' }).exec()];
+                return [4 /*yield*/, BlogPostModel.find({ status: 0 }).sort({ date: 'descending' }).exec()];
             case 2:
                 newBlogPosts = _a.sent();
                 console.log('found: ');

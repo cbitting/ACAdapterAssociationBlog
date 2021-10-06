@@ -39,7 +39,7 @@ const BlogPosts = () => {
     getData();
   }, []);
 
-  function NumberList(props: any) {
+  function BlogPostList(props: any) {
     if (props.posts) {
       console.dir(props.posts)
     const posts = props.posts;
@@ -47,9 +47,10 @@ const BlogPosts = () => {
       // Correct! Key should be specified inside the array.
       // <ListItem key={number.toString()} value={number} />
       <Card>
-    <h5><a href={"/blog/" + post.id}>{post.title}</a></h5>
-    <p>{post.content}</p>
-    <Button>Submit</Button>
+    <h2><a href={"/blog/" + post.id}>{post.title}</a></h2>
+    <h4>{post.date}</h4>
+    <p>{post.description}</p>
+    
 </Card>
     );
     return (
@@ -69,8 +70,7 @@ const BlogPosts = () => {
   return (
   <div className={styles.BlogPosts}>
    
-    BlogPosts Component
-    <NumberList posts={data} />,
+    <BlogPostList posts={data} />,
   </div>)
 }
 

@@ -42,6 +42,10 @@ const BlogPostSingle = () => {
             post(id: $slug) {
               id
               title
+              content
+              description
+              author
+              date
             }
           }
         `,
@@ -66,6 +70,8 @@ const BlogPostSingle = () => {
       title: "new title",
       description: "new descrip",
       content: "new content",
+      date: "",
+      author: ""
     });
   }
   const updatePost = (target: string) => {
@@ -83,10 +89,13 @@ const BlogPostSingle = () => {
 
   return (
     <div>
-      <p>{slug}</p>
+     
+     <article>
+              <h2>{blogpost.title}</h2>
+              <p>{blogpost.content}</p>
+            </article>
 
-      <p>{blogpost.title}</p>
-      <p>{blogpost.description}</p>
+     
       <Button onClick={expandEdit}>
         {editorOpen ? "Hide" : "Show"} Editor
       </Button>
