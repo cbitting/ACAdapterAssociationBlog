@@ -128,9 +128,9 @@ const BlogPostSingle = () => {
               <CommentAdd postId={slug}></CommentAdd>
             </article>
 
-     
-      <Button onClick={expandEdit}>
-        {editorOpen ? "Hide" : "Show"} Editor
+     <Divider></Divider>
+      <Button icon="edit" onClick={expandEdit}>
+        {editorOpen ? "Hide" : "Show Blog Post"} Editor
       </Button>
       <Collapse isOpen={editorOpen}>
         <FormGroup

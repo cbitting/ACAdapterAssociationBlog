@@ -3,6 +3,7 @@ import React, { Suspense, lazy, useEffect, useState } from "react";
 import "./App.css";
 import { BrowserRouter, Route } from "react-router-dom";
 import { RecoilRoot } from "recoil";
+import { Divider } from "@blueprintjs/core";
 
 const TopNavLazy = React.lazy(
   () => import("./components/TopNavMenu/TopNavMenu.lazy")
@@ -42,6 +43,7 @@ function App() {
       <Route component={SingleBlogPost} path="/blog/:slug" />
       <Route component={SingleBlogPost} path="/sample" />
   
+  <p id="cbfooter">© Chris Bitting - 2021 - Message me at chris.bitting@gmail.com</p>
 
           </main>
         </div>
