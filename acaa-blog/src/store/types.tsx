@@ -9,6 +9,6 @@ export interface BlogPost {
 
   export interface PostComment {
     id: string;
-    name: string;
+    author: string;
     comment: string;   
   }

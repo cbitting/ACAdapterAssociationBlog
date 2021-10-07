@@ -1,6 +1,4 @@
-import { AnchorButton, Button, Navbar } from '@blueprintjs/core';
-import React from 'react';
-import styles from './TopNavMenu.module.css';
+import { AnchorButton, Navbar } from '@blueprintjs/core';
 
 const TopNavMenu = () => (
   <Navbar>

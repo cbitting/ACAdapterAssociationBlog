@@ -1,13 +1,11 @@
 import fastify from "fastify";
-import { FastifyCookieOptions } from "fastify-cookie";
-import cookie from "fastify-cookie";
-import fastifyJwt from "fastify-jwt";
 import mercurius, { IResolvers } from "mercurius";
-import mercuriusCodegen, { gql } from "mercurius-codegen";
+import { gql } from "mercurius-codegen";
 import * as uuid from "uuid";
 import { model, Schema, Model, Document, connect } from "mongoose";
 
-const mongoDBconnection = "mongodb+srv://aarsenal:adapt3rCrazy2819@cbcluster1.lit21.mongodb.net/AdapterArsenalDev?retryWrites=true&w=majority";
+const mongoDBconnection =
+  "mongodb+srv://aarsenal:adapt3rCrazy2819@cbcluster1.lit21.mongodb.net/AdapterArsenalDev?retryWrites=true&w=majority";
 
 interface IBlogPost extends Document {
   id: string;
@@ -31,11 +29,29 @@ const BlogPostSchema: Schema = new Schema({
 
 const BlogPostModel: Model<IBlogPost> = model("BlogPost", BlogPostSchema);
 
+interface IComment extends Document {
+  id: string;
+  postId: string;
+  author: string;
+  status: Number;
+  comment: string;
+  date: Date;
+}
+
+const CommentSchema: Schema = new Schema({
+  id: { type: String, required: true },
+  postId: { type: String, required: true },
+  author: { type: String, required: true },
+  status: { type: Number, required: true },
+  comment: { type: String, required: true },
+  date: { type: Date, required: true },
+});
+
+const CommentModel: Model<IComment> = model("Comment", CommentSchema);
+
 const server = fastify();
 
 server.register(require("fastify-cors"), {
-  // put your options here
-
   origin: "*",
   methods: "GET",
   credentials: true,
@@ -57,6 +73,24 @@ const schema = gql`
     description: String
     content: String
     author: String
+    status: Int
+  }
+
+  type Comment {
+    id: String
+    postId: String
+    author: String
+    status: Int
+    comment: String
+    date: String
+  }
+
+  input CommentInput {
+    postId: String
+    author: String
+    status: Int
+    comment: String
+    date: String
   }
 
   input BlogPostUpdateInput {
@@ -68,33 +102,26 @@ const schema = gql`
     status: Int
   }
 
-  input MessageInput {
-    content: String
-    author: String
-  }
-
-  type Message {
-    id: ID!
-    content: String
-    author: String
-  }
-
   type Mutation {
-    createMessage(input: MessageInput): Message
     addBlogPost(input: BlogPostInput): BlogPost
     updateBlogPost(input: BlogPostUpdateInput): BlogPost
+    addComment(input: CommentInput): Comment
   }
 
   type Query {
     posts: [BlogPost!]!
     post(id: String!): BlogPost!
-    hello(name: String!): String!
+    comments(postId: String!): [Comment!]!
   }
 `;
-interface Message {
+
+interface iComment {
   id: string;
-  content: string;
+  postId: string;
   author: string;
+  status: Number;
+  comment: string;
+  date: Date;
 }
 
 interface iBlogPost {
@@ -109,71 +136,42 @@ interface iBlogPost {
 
 const resolvers: IResolvers = {
   Query: {
-    hello(root, { name }, ctx, info) {
-      // root ~ {}
-      // name ~ string
-      // ctx.authorization ~ string | undefined
-      // info ~ GraphQLResolveInfo
-      return "hello " + name;
-    },
     post: async (root, { id }, ctx, info) => {
-      // root ~ {}
-      // name ~ string
-      // ctx.authorization ~ string | undefined
-      // info ~ GraphQLResolveInfo
       console.log(id);
       let foundPost: iBlogPost = await getBlogPost(id);
 
       return foundPost;
     },
-    posts: async (root, { }, ctx, info) => {
-      // root ~ {}
-      // name ~ string
-      // ctx.authorization ~ string | undefined
-      // info ~ GraphQLResolveInfo
-      
+    posts: async (root, {}, ctx, info) => {
       let foundPosts: iBlogPost[] = await getBlogPosts(0);
 
       return foundPosts;
     },
+    comments: async (root, { postId }, ctx, info) => {
+      let foundComments: iComment[] = await getPostComments(postId);
+
+      return foundComments;
+    },
   },
   Mutation: {
-    createMessage(root, { input }, ctx, info) {
-      // root ~ {}
-      // name ~ string
-      // ctx.authorization ~ string | undefined
-      // info ~ GraphQLResolveInfo
-      //return 'a  message ' + input
-      console.log(input);
-      let newMessage: Message = { id: "123", content: "lj", author: "chris" };
-      return newMessage;
-    },
     addBlogPost: async (root, { input }) => {
-      //console.dir(BlogPostInput);
-      //console.dir(_);
-      console.dir(input);
-      //console.dir(info);
       const newPost = new BlogPostModel(input);
-      console.dir(newPost);
-      //let newBlogPost: iBlogPost = {id: '123', title: 'title', content: 'lj', description: 'chris'}
+
       let addedPost: iBlogPost = await upsertBlogPost(newPost);
       return addedPost;
+    },
+    addComment: async (root, { input }) => {
+      const newComment = new CommentModel(input);
 
-      throw new Error("Invalid vote id");
-    }, 
+      let addedPost: iComment = await upsertComment(newComment);
+      return addedPost;
+    },
     updateBlogPost: async (root, { input }) => {
-      //console.dir(BlogPostInput);
-      //console.dir(_);
-      //const newPost = new BlogPostModel(input);
-      console.dir(input);
       let addedPost: iBlogPost = await upsertBlogPost(input);
       return addedPost;
-
-      throw new Error("Invalid vote id");
     },
   },
 };
-
 
 const upsertBlogPost = async (newItem: iBlogPost): Promise<iBlogPost> => {
   let newBlogPost: iBlogPost = newItem;
@@ -185,20 +183,21 @@ const upsertBlogPost = async (newItem: iBlogPost): Promise<iBlogPost> => {
     newBlogPost.date = new Date();
   } else {
     console.log("just updating: " + newBlogPost.title);
-    
+
     newBlogPost.date = new Date();
   }
 
   try {
-    await connect(
-      mongoDBconnection,
-      {}
-    );
+    await connect(mongoDBconnection, {});
 
-    let query = {'id': newItem.id};
+    let query = { id: newItem.id };
     //delete newItem.id;
     console.dir(newItem);
-    const user: IBlogPost = await BlogPostModel.findOneAndUpdate(query, newBlogPost, {upsert: true});
+    const user: IBlogPost = await BlogPostModel.findOneAndUpdate(
+      query,
+      newBlogPost,
+      { upsert: true }
+    );
 
     return newBlogPost;
   } catch (error) {
@@ -209,39 +208,85 @@ const upsertBlogPost = async (newItem: iBlogPost): Promise<iBlogPost> => {
   return newItem;
 };
 
+const upsertComment = async (newItem: iComment): Promise<iComment> => {
+  let newBlogPost: iComment = newItem;
+  if (!newItem.id) {
+    console.log("new comment");
+    const newUUID: string = uuid.v4().toString();
+
+    newBlogPost.id = newUUID;
+    newBlogPost.date = new Date();
+  } else {
+    console.log("just updating: " + newBlogPost.comment);
+
+    newBlogPost.date = new Date();
+  }
+
+  try {
+    await connect(mongoDBconnection, {});
+
+    let query = { id: newItem.id };
+    //delete newItem.id;
+    console.dir(newItem);
+    const user: IComment = await CommentModel.findOneAndUpdate(
+      query,
+      newBlogPost,
+      { upsert: true }
+    );
+
+    return newBlogPost;
+  } catch (error) {
+    console.log("error");
+    console.log(error);
+  }
+
+  return newItem;
+};
 
 const getBlogPost = async (id: string): Promise<iBlogPost> => {
-  console.log('looking: ')
+  console.log("looking: ");
 
-  await connect(
-    mongoDBconnection,
-    {}
-  );
+  await connect(mongoDBconnection, {});
 
   const newBlogPost: any = await BlogPostModel.findOne({ id: id }).exec();
-  
-  console.log('found: ')
-  console.dir(newBlogPost)
-  
+
+  console.log("found: ");
+  console.dir(newBlogPost);
+
   return newBlogPost;
 };
 
 const getBlogPosts = async (page: number): Promise<iBlogPost[]> => {
-  console.log('looking: ')
+  console.log("looking: ");
 
-  await connect(
-    mongoDBconnection,
-    {}
-  );
+  await connect(mongoDBconnection, {});
 
-  const newBlogPosts: any[] = await BlogPostModel.find({status: 0}).sort({date: 'descending'}).exec();
+  const newBlogPosts: any[] = await BlogPostModel.find({ status: 0 })
+    .sort({ date: "descending" })
+    .exec();
 
+  console.log("found: ");
+  console.dir(newBlogPosts);
 
-  
-  console.log('found: ')
-  console.dir(newBlogPosts)
-  
   return newBlogPosts;
+};
+
+const getPostComments = async (postId: string): Promise<iComment[]> => {
+  console.log("looking: ");
+
+  await connect(mongoDBconnection, {});
+
+  const postComments: any[] = await CommentModel.find({
+    status: 0,
+    postId: postId,
+  })
+    .sort({ date: "descending" })
+    .exec();
+
+  console.log("found: ");
+  console.dir(postComments);
+
+  return postComments;
 };
 
 server.register(mercurius, {
@@ -260,7 +305,6 @@ server.post("/hello2", async function (request, reply) {
   return reply.graphql(String(request.body));
   //console.dir(request)
 });
-
 
 server.get("/pong", async (request, reply) => {
   reply.send({ ping: "pinnnnngggg" });

@@ -1,9 +1,14 @@
-import { atom, selector, useRecoilState, useRecoilValue } from "recoil";
-import { BlogPost } from "./types";
-import axios from "axios";
+import { atom } from "recoil";
+import { BlogPost, PostComment } from "./types";
+
 
 
 export const blogPostState = atom({
   key: "blogpost",
   default: {} as BlogPost,
+});
+
+export const postCommentState = atom({
+  key: "postcomment",
+  default: {} as PostComment,
 });

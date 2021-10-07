@@ -78,24 +78,24 @@ var BlogPostSchema = new mongoose_1.Schema({
     status: { type: Number, required: true },
 });
 var BlogPostModel = (0, mongoose_1.model)("BlogPost", BlogPostSchema);
+var CommentSchema = new mongoose_1.Schema({
+    id: { type: String, required: true },
+    postId: { type: String, required: true },
+    author: { type: String, required: true },
+    status: { type: Number, required: true },
+    comment: { type: String, required: true },
+    date: { type: Date, required: true },
+});
+var CommentModel = (0, mongoose_1.model)("Comment", CommentSchema);
 var server = (0, fastify_1.default)();
 server.register(require("fastify-cors"), {
-    // put your options here
     origin: "*",
     methods: "GET",
     credentials: true,
 });
-var schema = (0, mercurius_codegen_1.gql)(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n  type BlogPost {\n    id: String\n    title: String\n    description: String\n    content: String\n    date: String\n    author: String\n    status: Int\n  }\n\n  input BlogPostInput {\n    title: String\n    description: String\n    content: String\n    author: String\n  }\n\n  input BlogPostUpdateInput {\n    id: String\n    title: String\n    description: String\n    content: String\n    author: String\n    status: Int\n  }\n\n  input MessageInput {\n    content: String\n    author: String\n  }\n\n  type Message {\n    id: ID!\n    content: String\n    author: String\n  }\n\n  type Mutation {\n    createMessage(input: MessageInput): Message\n    addBlogPost(input: BlogPostInput): BlogPost\n    updateBlogPost(input: BlogPostUpdateInput): BlogPost\n  }\n\n  type Query {\n    posts: [BlogPost!]!\n    post(id: String!): BlogPost!\n    hello(name: String!): String!\n  }\n"], ["\n  type BlogPost {\n    id: String\n    title: String\n    description: String\n    content: String\n    date: String\n    author: String\n    status: Int\n  }\n\n  input BlogPostInput {\n    title: String\n    description: String\n    content: String\n    author: String\n  }\n\n  input BlogPostUpdateInput {\n    id: String\n    title: String\n    description: String\n    content: String\n    author: String\n    status: Int\n  }\n\n  input MessageInput {\n    content: String\n    author: String\n  }\n\n  type Message {\n    id: ID!\n    content: String\n    author: String\n  }\n\n  type Mutation {\n    createMessage(input: MessageInput): Message\n    addBlogPost(input: BlogPostInput): BlogPost\n    updateBlogPost(input: BlogPostUpdateInput): BlogPost\n  }\n\n  type Query {\n    posts: [BlogPost!]!\n    post(id: String!): BlogPost!\n    hello(name: String!): String!\n  }\n"])));
+var schema = (0, mercurius_codegen_1.gql)(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n  type BlogPost {\n    id: String\n    title: String\n    description: String\n    content: String\n    date: String\n    author: String\n    status: Int\n  }\n\n  input BlogPostInput {\n    title: String\n    description: String\n    content: String\n    author: String\n    status: Int\n  }\n\n  type Comment {\n    id: String\n    postId: String\n    author: String\n    status: Int\n    comment: String\n    date: String\n  }\n\n  input CommentInput {\n    postId: String\n    author: String\n    status: Int\n    comment: String\n    date: String\n  }\n\n  input BlogPostUpdateInput {\n    id: String\n    title: String\n    description: String\n    content: String\n    author: String\n    status: Int\n  }\n\n  type Mutation {\n    addBlogPost(input: BlogPostInput): BlogPost\n    updateBlogPost(input: BlogPostUpdateInput): BlogPost\n    addComment(input: CommentInput): Comment\n  }\n\n  type Query {\n    posts: [BlogPost!]!\n    post(id: String!): BlogPost!\n    comments(postId: String!): [Comment!]!\n  }\n"], ["\n  type BlogPost {\n    id: String\n    title: String\n    description: String\n    content: String\n    date: String\n    author: String\n    status: Int\n  }\n\n  input BlogPostInput {\n    title: String\n    description: String\n    content: String\n    author: String\n    status: Int\n  }\n\n  type Comment {\n    id: String\n    postId: String\n    author: String\n    status: Int\n    comment: String\n    date: String\n  }\n\n  input CommentInput {\n    postId: String\n    author: String\n    status: Int\n    comment: String\n    date: String\n  }\n\n  input BlogPostUpdateInput {\n    id: String\n    title: String\n    description: String\n    content: String\n    author: String\n    status: Int\n  }\n\n  type Mutation {\n    addBlogPost(input: BlogPostInput): BlogPost\n    updateBlogPost(input: BlogPostUpdateInput): BlogPost\n    addComment(input: CommentInput): Comment\n  }\n\n  type Query {\n    posts: [BlogPost!]!\n    post(id: String!): BlogPost!\n    comments(postId: String!): [Comment!]!\n  }\n"])));
 var resolvers = {
     Query: {
-        hello: function (root, _a, ctx, info) {
-            var name = _a.name;
-            // root ~ {}
-            // name ~ string
-            // ctx.authorization ~ string | undefined
-            // info ~ GraphQLResolveInfo
-            return "hello " + name;
-        },
         post: function (root, _a, ctx, info) {
             var id = _a.id;
             return __awaiter(void 0, void 0, void 0, function () {
@@ -103,10 +103,6 @@ var resolvers = {
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
-                            // root ~ {}
-                            // name ~ string
-                            // ctx.authorization ~ string | undefined
-                            // info ~ GraphQLResolveInfo
                             console.log(id);
                             return [4 /*yield*/, getBlogPost(id)];
                         case 1:
@@ -127,19 +123,22 @@ var resolvers = {
                 }
             });
         }); },
+        comments: function (root, _a, ctx, info) {
+            var postId = _a.postId;
+            return __awaiter(void 0, void 0, void 0, function () {
+                var foundComments;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0: return [4 /*yield*/, getPostComments(postId)];
+                        case 1:
+                            foundComments = _b.sent();
+                            return [2 /*return*/, foundComments];
+                    }
+                });
+            });
+        },
     },
     Mutation: {
-        createMessage: function (root, _a, ctx, info) {
-            var input = _a.input;
-            // root ~ {}
-            // name ~ string
-            // ctx.authorization ~ string | undefined
-            // info ~ GraphQLResolveInfo
-            //return 'a  message ' + input
-            console.log(input);
-            var newMessage = { id: "123", content: "lj", author: "chris" };
-            return newMessage;
-        },
         addBlogPost: function (root, _a) {
             var input = _a.input;
             return __awaiter(void 0, void 0, void 0, function () {
@@ -147,12 +146,24 @@ var resolvers = {
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
-                            //console.dir(BlogPostInput);
-                            //console.dir(_);
-                            console.dir(input);
                             newPost = new BlogPostModel(input);
-                            console.dir(newPost);
                             return [4 /*yield*/, upsertBlogPost(newPost)];
+                        case 1:
+                            addedPost = _b.sent();
+                            return [2 /*return*/, addedPost];
+                    }
+                });
+            });
+        },
+        addComment: function (root, _a) {
+            var input = _a.input;
+            return __awaiter(void 0, void 0, void 0, function () {
+                var newComment, addedPost;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            newComment = new CommentModel(input);
+                            return [4 /*yield*/, upsertComment(newComment)];
                         case 1:
                             addedPost = _b.sent();
                             return [2 /*return*/, addedPost];
@@ -166,12 +177,7 @@ var resolvers = {
                 var addedPost;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
-                        case 0:
-                            //console.dir(BlogPostInput);
-                            //console.dir(_);
-                            //const newPost = new BlogPostModel(input);
-                            console.dir(input);
-                            return [4 /*yield*/, upsertBlogPost(input)];
+                        case 0: return [4 /*yield*/, upsertBlogPost(input)];
                         case 1:
                             addedPost = _b.sent();
                             return [2 /*return*/, addedPost];
@@ -203,7 +209,7 @@ var upsertBlogPost = function (newItem) { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, (0, mongoose_1.connect)(mongoDBconnection, {})];
             case 2:
                 _a.sent();
-                query = { 'id': newItem.id };
+                query = { id: newItem.id };
                 //delete newItem.id;
                 console.dir(newItem);
                 return [4 /*yield*/, BlogPostModel.findOneAndUpdate(query, newBlogPost, { upsert: true })];
@@ -219,19 +225,57 @@ var upsertBlogPost = function (newItem) { return __awaiter(void 0, void 0, void 
         }
     });
 }); };
+var upsertComment = function (newItem) { return __awaiter(void 0, void 0, void 0, function () {
+    var newBlogPost, newUUID, query, user, error_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                newBlogPost = newItem;
+                if (!newItem.id) {
+                    console.log("new comment");
+                    newUUID = uuid.v4().toString();
+                    newBlogPost.id = newUUID;
+                    newBlogPost.date = new Date();
+                }
+                else {
+                    console.log("just updating: " + newBlogPost.comment);
+                    newBlogPost.date = new Date();
+                }
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 4, , 5]);
+                return [4 /*yield*/, (0, mongoose_1.connect)(mongoDBconnection, {})];
+            case 2:
+                _a.sent();
+                query = { id: newItem.id };
+                //delete newItem.id;
+                console.dir(newItem);
+                return [4 /*yield*/, CommentModel.findOneAndUpdate(query, newBlogPost, { upsert: true })];
+            case 3:
+                user = _a.sent();
+                return [2 /*return*/, newBlogPost];
+            case 4:
+                error_2 = _a.sent();
+                console.log("error");
+                console.log(error_2);
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/, newItem];
+        }
+    });
+}); };
 var getBlogPost = function (id) { return __awaiter(void 0, void 0, void 0, function () {
     var newBlogPost;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                console.log('looking: ');
+                console.log("looking: ");
                 return [4 /*yield*/, (0, mongoose_1.connect)(mongoDBconnection, {})];
             case 1:
                 _a.sent();
                 return [4 /*yield*/, BlogPostModel.findOne({ id: id }).exec()];
             case 2:
                 newBlogPost = _a.sent();
-                console.log('found: ');
+                console.log("found: ");
                 console.dir(newBlogPost);
                 return [2 /*return*/, newBlogPost];
         }
@@ -242,16 +286,41 @@ var getBlogPosts = function (page) { return __awaiter(void 0, void 0, void 0, fu
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                console.log('looking: ');
+                console.log("looking: ");
                 return [4 /*yield*/, (0, mongoose_1.connect)(mongoDBconnection, {})];
             case 1:
                 _a.sent();
-                return [4 /*yield*/, BlogPostModel.find({ status: 0 }).sort({ date: 'descending' }).exec()];
+                return [4 /*yield*/, BlogPostModel.find({ status: 0 })
+                        .sort({ date: "descending" })
+                        .exec()];
             case 2:
                 newBlogPosts = _a.sent();
-                console.log('found: ');
+                console.log("found: ");
                 console.dir(newBlogPosts);
                 return [2 /*return*/, newBlogPosts];
+        }
+    });
+}); };
+var getPostComments = function (postId) { return __awaiter(void 0, void 0, void 0, function () {
+    var postComments;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                console.log("looking: ");
+                return [4 /*yield*/, (0, mongoose_1.connect)(mongoDBconnection, {})];
+            case 1:
+                _a.sent();
+                return [4 /*yield*/, CommentModel.find({
+                        status: 0,
+                        postId: postId,
+                    })
+                        .sort({ date: "descending" })
+                        .exec()];
+            case 2:
+                postComments = _a.sent();
+                console.log("found: ");
+                console.dir(postComments);
+                return [2 /*return*/, postComments];
         }
     });
 }); };

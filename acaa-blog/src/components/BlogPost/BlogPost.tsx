@@ -1,29 +1,32 @@
-import { Button, Collapse, FormGroup, InputGroup } from "@blueprintjs/core";
-import styles from "./BlogPost.module.css";
-import { atom, useRecoilState, useRecoilValue } from "recoil";
-import { v4 } from "uuid";
+import { Button, Collapse, Divider, FormGroup, InputGroup, TextArea } from "@blueprintjs/core";
+import { useRecoilState } from "recoil";
 import React, { useEffect, useState } from "react";
 import { BlogPost } from "../../store/types";
 import { blogPostState } from "../../store/state";
 import {
   ApolloClient,
   InMemoryCache,
-  ApolloProvider,
-  useQuery,
   gql,
 } from "@apollo/client";
 import { useParams } from "react-router-dom";
+
+const CommentAdd = React.lazy(
+  () => import("../CommentAdd/CommentAdd.lazy")
+);
+
+const Comments = React.lazy(
+  () => import("../Comments/Comments.lazy")
+);
 
 type Slug = {
   slug: string;
 };
 
 const BlogPostSingle = () => {
-  let postTitle = "";
+ 
   const { slug } = useParams<Slug>();
 
-  console.log(slug);
-  const [title, setTitle] = useState("");
+  
   const [editorOpen, setEditorOpen] = useState(false);
   const [blogpost, setBlogPost] = useRecoilState(blogPostState);
 
@@ -52,7 +55,7 @@ const BlogPostSingle = () => {
         variables: { slug: slug },
       })
       .then((result) => {
-        console.log(result);
+      
         blogPost = result.data.post;
         setBlogPost(result.data.post);
       });
@@ -64,22 +67,48 @@ const BlogPostSingle = () => {
   }
   //check if blank:
   if (newBlogPost) {
-    console.log("blank:");
+    
     setBlogPost({
-      id: "123",
-      title: "new title",
-      description: "new descrip",
-      content: "new content",
-      date: "",
-      author: ""
+      id: "loading",
+      title: "loading",
+      description: "loading",
+      content: "loading",
+      date: "loading",
+      author: "loading"
     });
   }
-  const updatePost = (target: string) => {
-    console.log();
-  };
+
+  const updateBlogPost = (statCode: Number) => {
+  
+    const aclient = new ApolloClient({
+      uri: "http://localhost:8080/graphql",
+      cache: new InMemoryCache(),
+    });
+
+    aclient
+        .mutate({
+          mutation: gql`
+          mutation updatePost($id: String!, $title: String!, $description: String!, $status: Int, $content: String!, $author: String!) {
+            updateBlogPost(
+              input: {id: $id, title: $title, description: $description, content: $content, author: $author, status: $status}
+            ) {
+              title
+              id
+            }
+          }          
+          `,
+          variables: { title: blogpost.title, description: blogpost.description, id: slug, status: statCode, author: blogpost.author, content: blogpost.content},
+        })
+        .then((result) => {
+        ;
+          alert('Updated Blog Post!');
+         
+        });
+    
+  }
 
   const expandEdit = () => {
-    //this.setState({ isOpen: !this.state.isOpen });
+   
     if (editorOpen) {
       setEditorOpen(false);
     } else {
@@ -92,7 +121,11 @@ const BlogPostSingle = () => {
      
      <article>
               <h2>{blogpost.title}</h2>
+              <h5>{ new Date(+blogpost.date).toString()}</h5>
               <p>{blogpost.content}</p>
+              <Divider></Divider>
+<Comments postId={slug}></Comments>
+              <CommentAdd postId={slug}></CommentAdd>
             </article>
 
      
@@ -112,9 +145,8 @@ const BlogPostSingle = () => {
             placeholder="Post Title"
             value={blogpost.title || ""}
             onChange={(e) => {
-              //setTitle(e.target.value)
+             
               setBlogPost({ ...blogpost, title: e.target.value });
-              //setBlogPost(Object.assign({}, blogpost, {title: e.target.value}));
             }}
           />
         </FormGroup>
@@ -127,12 +159,50 @@ const BlogPostSingle = () => {
           <InputGroup
             id="Description-input"
             type="text"
-            placeholder="Description Title"
+            placeholder="Description"
             value={blogpost.description || ""}
             onChange={(e) => {
-              //setTitle(e.target.value)
+           
               setBlogPost({ ...blogpost, description: e.target.value });
-              //setBlogPost(Object.assign({}, blogpost, {title: e.target.value}));
+            
+            }}
+          />
+        </FormGroup>
+        <FormGroup
+          helperText="Post Content..."
+          label="Post Content"
+          labelFor="Content-input"
+          labelInfo="(required)"
+        >
+          <TextArea
+            id="Content-input"
+            growVertically={true}
+            large={true}
+            className="bp3-fill"
+            placeholder="Content"
+            value={blogpost.content || ""}
+            onChange={(e) => {
+           
+              setBlogPost({ ...blogpost, content: e.target.value });
+            
+            }}
+          />
+        </FormGroup>
+        <FormGroup
+          helperText="Post Author..."
+          label="Post Author"
+          labelFor="Author-input"
+          labelInfo="(required)"
+        >
+          <InputGroup
+            id="Author-input"
+            type="text"
+            placeholder="Author"
+            value={blogpost.author || ""}
+            onChange={(e) => {
+           
+              setBlogPost({ ...blogpost, author: e.target.value });
+            
             }}
           />
         </FormGroup>
@@ -141,9 +211,18 @@ const BlogPostSingle = () => {
           text="Update / Add Post"
           className="btn btn-primary"
           onClick={(_) => {
-            //setBlogPost({ id: '123', title: 'lakjsdf', description: 'lf', content: '' });
-            console.log(title);
-            console.dir(blogpost);
+            
+            updateBlogPost(0);
+          }}
+        />
+
+<Button
+          intent="danger"
+          text="Delete Post"
+          className="btn btn-primary"
+          onClick={(_) => {
+            
+            updateBlogPost(2);
           }}
         />
       </Collapse>
